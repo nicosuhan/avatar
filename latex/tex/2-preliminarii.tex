@@ -1,0 +1,239 @@
+% !TeX root = main.tex
+\chapter{Theoretical Background}
+
+\section{Machine Translation}
+
+\subsection{History}
+
+\quad Machine translation has changed a lot from the start to the present, 
+and the easiest way to understand the field is to look at it as a timeline of major paradigms. 
+Each paradigm had its own idea about how translation should be solved: 
+first the linguistic approach said that translation could be described with handcrafted rules, 
+after that a probabilistic approach tried to solve by learning from existing translations from data, 
+and in the end the task was solved using neural approaches like most of the problems in the NLP area.
+
+The first important stage was rule-based machine translation. 
+In that period, systems were built around dictionaries, grammatical rules, 
+and manually designed transfer procedures. 
+The most important system from this period is SYSTRAN, 
+which for many years was one of the strongest and most widely used systems in practice. 
+It was deployed in real institutional and commercial settings, 
+which made it a very important system for the rule-based era.
+The main strength of such systems was control: if the linguistic rules were well specified,
+the behavior of the translator could be completely understood and easy modified. 
+The main weakness was that building and maintaining those rules required a lot of expert work, 
+which is very expensive to collect.
+
+The next major stage was statistical machine translation. 
+Here the focus moved away from handcrafted rules and toward bilingual corpora. 
+Instead of defining how translation should work, 
+researchers estimated translation probabilities from aligned examples. 
+Phrase-based statistical machine translation became especially successful years later, 
+one of the best systems that used that method was developed by IBM and it is called IBM Model Series. 
+They outperformed the previous models that used rule-based methods, 
+with the possibility to achieve better results when dealing with rare words that are not present too often in parallel corpora. 
+The success of these models dominates the field for many years, giving them time to improve to new versions,
+up to IBM Model 6, until the next approach starts to create better results and make this models to became unreliable.
+
+Neural machine translation comes after that and changed the field forever. 
+Instead of splitting translation into many separate components, 
+neural systems learned the entire mapping from source sequence to target sequence in an end-to-end manner. 
+In the early neural period, encoder-decoder models based on recurrent networks became the main approach. 
+The system that best symbolized the maturity of this paradigm was 
+Google's Neural Machine Translation system, usually called GNMT \cite{wu2016gnmt}. 
+GNMT is important not simply because it was neural, 
+but because it showed at scale that neural translation could outperform strong phrase-based baselines.
+
+The transformer period began after the publication of the transformer architecture 
+\cite{vaswani2017transformer}. 
+Compared with recurrent models, 
+transformers trained more efficiently and dealt with long-distance dependencies better than previous models. 
+This thing made them to quickly became the dominant family in machine translation. 
+The strongest systems of the modern period are no longer small single-task models, 
+but large multilingual transformer systems trained on huge datasets. 
+
+\subsection{SoTA}
+
+\quad Now in 2026, 
+the state of the art for machine translation is no longer tied to one single model name, 
+different systems are now in the market, each one is the best for another niche in MT. 
+The strongest systems come from a broader family of very large transformer-based multilingual models, 
+sometimes combined with LLM-style adaptation or prompting strategies. 
+A good reference point for this modern direction is the No Language Left Behind line of work, 
+especially NLLB-200, 
+which showed that one multilingual system can cover a very large number of languages 
+while still giving strong performance, including for many low-resource cases \cite{team2024nllb}.
+
+At the same time, 
+recent shared-task results suggest that the field has entered a more mixed phase. 
+The WMT24 General Machine Translation Shared Task shows very clearly that large language models 
+now matter in MT, 
+but it also shows that machine translation is still not a solved problem \cite{wmt24general}. 
+Now we can see that very strong results are possible, 
+but they depend on language pair, domain, model size, adaptation strategy, and evaluation setup. 
+There is no single universal winner that dominates all settings.
+
+Another thing that defines SoTA in 2026 is that quality is judged more broadly than before. 
+A system is not anymore considered strong only because it reaches a high automatic score on one benchmark. 
+Researchers also care about multilingual robustness, domain transfer, 
+stability on lower-resource languages, 
+and the gap between automatic metrics and actual translation usefulness. 
+Because of this, 
+modern machine translation research is less about finding one magical architecture 
+and more about combining strong pretrained models, multilingual data, and careful tuning.
+
+\subsection{Code translation}
+
+\quad Code translation is related to general machine translation, 
+but the two tasks are not identical. 
+In natural language translation, there can be several acceptable outputs for the same source sentence, 
+as long as they preserve the meaning and remain fluent. 
+In code translation, this freedom is much smaller due to the necessity of correctness. 
+A translated program may look syntactically correct and still be useless if it does not compile, 
+if it crashes during execution, or if it changes the behavior of the original program. 
+Because of that, correctness in code translation is judged much more strictly.
+
+There is also a structural difference. 
+Natural language contains ambiguity, redundancy, and stylistic variation. 
+Programming languages are far more constrained. 
+A translation model has to preserve semantics while also respecting scope, control flow, library usage, 
+typing rules, and the conventions of the target language. 
+This means that code translation is not just a sequence generation task. 
+It need also reasoning to structure a good translation in another programming language.
+
+The research timeline in code translation is also shorter than in general MT. 
+Early approaches were often closer to transpilation or compiler engineering than to modern neural modeling. 
+They worked when the relation between two languages was narrow and well understood, 
+but they did not scale well once the translation became less direct or less rule-friendly.
+
+A more modern phase started when pretrained neural models for source code became available. 
+An important milestone was TransCoder, 
+which showed that translation between programming languages could be approached in a zero-shot setting 
+\cite{roziere2020transcoder}. 
+This was a strong result because it suggested that multilingual representations 
+can capture useful structural relations across programming languages even 
+without standard parallel supervision.
+
+At the same time, 
+pretrained encoder-decoder models such as PLBART became relevant because 
+they showed that code generation and translation can benefit from pretraining 
+on both programming languages and natural language \cite{ahmad2021plbart}. 
+The overall direction is similar to what happened in general machine translation, 
+but the evaluation remains more demanding because a translation is useful only 
+if it preserves the behavior of the original program.
+
+\section{AVATAR Dataset}
+
+\quad The AVATAR dataset is important for this thesis because it was created 
+exactly for program translation between Java and Python \cite{ahmad2023avatar}. 
+The difference from it and  general code datasets that are useful for pretraining,
+is that AVATAR is built as 
+a parallel corpus. This means that for the same programming problem there is a 
+Java solution and a Python solution that are meant to solve the same task. This 
+kind of alignment is essential for supervised translation experiments, because it 
+offers a direct source-target relation between programs written in two different 
+languages.
+
+The dataset is organized around competitive-programming style problems. 
+This makes the examples shorter and more self-contained than large 
+software engineering projects. 
+Each pair is useful because it allows the model 
+to learn how the same algorithmic idea is expressed in Java and in Python. 
+The paper also provides the standard train, validation, and test split, 
+which is very 
+important for fair comparison between models. If every model is trained and 
+evaluated on the same split, then the reported differences are easier to interpret.
+
+Another useful property of AVATAR is that it is connected to test cases. This is 
+very important in code translation, because text similarity alone is not enough. 
+A translated program may look close to the reference and still fail to compile or 
+to produce the correct answer. With AVATAR, it becomes possible to evaluate not 
+only lexical similarity, but also whether the translated code can be executed and 
+whether it behaves correctly on actual inputs.
+
+The dataset also has his own limitations. It only covers one language 
+pair, Java and Python, and it reflects mostly competitive-programming 
+style solutions rather than larger software systems. This means that the results 
+obtained on AVATAR should be interpreted as strong evidence for this benchmark, 
+but not automatically as proof that the same conclusions hold for every possible 
+code translation scenario. Even with these limitations, AVATAR remains one of the 
+most useful resources for controlled experiments on Java-to-Python translation.
+
+\section{Evaluation Metrics}
+
+\subsection{BLEU}
+
+\quad BLEU is the most familiar metric borrowed from machine translation 
+\cite{papineni2002bleu}. It is calculated from the overlap between the generated 
+translation and the reference translation at the level of n-grams. In practice, 
+the metric computes the precision for unigrams, bigrams, trigrams, and four-grams, 
+then combines these values through a geometric mean. A brevity penalty is added 
+so that very short outputs are not rewarded unfairly.
+
+In this task, BLEU is useful because it gives a quick picture of lexical 
+similarity. If the generated code uses many of the same token patterns as the 
+reference, the score becomes higher. At the same time, BLEU remains only a 
+surface-level metric. A program may obtain a reasonable BLEU score and still be 
+wrong as code, so this metric is useful, but not sufficient by itself.
+
+\subsection{Syntax Match}
+
+\quad Syntax Match, abbreviated as SM, measures how much of the generated 
+program structure overlaps with the reference program structure. It is calculated 
+by extracting subtrees from the abstract syntax tree of the candidate program and 
+comparing them with the subtrees found in the reference program's abstract syntax 
+tree \cite{ren2020codebleu}.
+
+This metric matters because code is not only a sequence of words or symbols. It 
+has a hierarchical structure, and that structure influences meaning. Two programs 
+may contain similar tokens, but if the tree structure is different, the final 
+behavior may also be different.
+
+\subsection{Dataflow Match}
+
+\quad Dataflow Match, abbreviated as DM, focuses on the relations between values 
+and variables in the program. It is calculated as the ratio between the number of 
+matched candidate data-flow relations and the total number of reference data-flow 
+relations \cite{ren2020codebleu}. In simpler words, it checks whether the same 
+important dependencies between variables are preserved in the translation.
+
+This metric is useful because a translation may look syntactically correct and 
+still be wrong if the way information moves through the program changes. That is 
+why Dataflow Match is closer to semantic correctness than token-level similarity.
+
+\subsection{CodeBLEU}
+
+\quad CodeBLEU is a metric designed specifically for code-related tasks 
+\cite{ren2020codebleu}. In the AVATAR setting, it is computed as a weighted 
+combination of token-level match, syntax-level match, and data-flow match. The 
+idea behind it is simple: code quality should not be judged only by token overlap, 
+because source code also has structure and semantic dependencies.
+
+For this reason, CodeBLEU is usually more informative than plain BLEU when the 
+task is code translation. It still remains an automatic proxy, but it 
+captures more aspects of program similarity in a single score.
+
+\subsection{Execution Accuracy}
+
+\quad Execution Accuracy, abbreviated as EA, measures the percentage of 
+translated programs that are executable, meaning that they do not fail because of 
+compilation errors or runtime errors \cite{ahmad2023avatar}. This already makes 
+it stricter than lexical or structural metrics, because it checks whether the 
+output is valid enough to be run.
+
+In practice, this metric is important because a translation may look plausible 
+and still be unusable. If it cannot even pass the execution stage, then from a 
+practical point of view it is not a good translation.
+
+\subsection{Computational Accuracy}
+
+\quad Computational Accuracy, abbreviated as CA, is the strictest metric among 
+the ones reported in the AVATAR paper. It checks whether the translated program 
+produces the same outputs as the reference when both are executed on the same 
+inputs. This follows the same general evaluation idea used in earlier work such 
+as TransCoder \cite{roziere2020transcoder}.
+
+This metric is especially important because it is the closest automatic proxy to 
+functional correctness. A program may compile and run, but if it produces the 
+wrong output, then the translation still failed. For that reason, Computational 
+Accuracy is often the most meaningful result when the real goal is usable code.

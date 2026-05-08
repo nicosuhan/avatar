@@ -1,0 +1,11 @@
+{
+  "direction": "Python-to-Java",
+  "model": "Transformer",
+  "bleu": 39.4,
+  "syntax_match": 49.3,
+  "dataflow_match": 19.4,
+  "codebleu": 37.1,
+  "execution_accuracy": 18.7,
+  "computational_accuracy": 1.3
+}
+

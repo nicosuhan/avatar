@@ -1,0 +1,13 @@
+{
+  "dataset": "AVATAR",
+  "source_language": "python",
+  "target_language": "java",
+  "direction": "Python-to-Java",
+  "model": "Transformer",
+  "model_key": "transformer",
+  "configured_epochs": 10,
+  "training_style": "from scratch",
+  "decoder": "beam search",
+  "metrics_file": "metrics.json"
+}
+

@@ -1,0 +1,103 @@
+% !TeX root = main.tex
+\chapter{Methodology}
+
+\section{Baselines}
+
+\quad The baseline part of this project follows the trained-from-scratch models
+from the AVATAR paper \cite{ahmad2023avatar}. Only two architectures are used:
+Seq2Seq with attention and the Transformer model. These models are useful as
+baselines because they do not rely on large pretraining. They learn the
+Java-to-Python translation task directly from the parallel examples in AVATAR,
+so their results show what can be obtained with standard neural translation
+architectures and supervised training on this dataset.
+
+The first model is Seq2Seq with attention. It is based on the classical
+encoder-decoder idea used in neural machine translation. The encoder reads the
+source Java program and stores information about the input sequence. The decoder
+then generates the Python program one token at a time. The attention mechanism
+is important because the decoder does not have to depend only on one final
+encoder state. Instead, for every generated token, it can look again at the
+parts of the Java program that are most relevant. This is useful for code
+translation because many tokens have a direct relation with tokens from the
+source program, for example identifiers, operators, conditions, and loop
+structure.
+
+In this project, the Seq2Seq baseline is implemented with LSTM layers. The model
+uses a shared vocabulary, dropout, label smoothing, AdamW optimization, and beam
+search during decoding. This makes it a simple but complete neural baseline for
+the AVATAR task. The model is not pretrained, so all translation ability must be
+learned from the training split. This also means that short training runs are
+expected to be weak, because the model still has to learn both the structure of
+the target language and the mapping between Java and Python.
+
+The second model is the Transformer. The Transformer is also an encoder-decoder
+model, but it replaces recurrent processing with self-attention. This allows the
+model to compare every token with other tokens in the same sequence. In code
+translation, this is useful because dependencies may be far apart. A variable
+can be declared at the beginning of a program and used much later, or a loop
+condition can influence statements inside a nested block. Self-attention gives
+the model a direct way to learn these relations.
+
+The Transformer implementation used in this project has six encoder layers, six
+decoder layers, 12 attention heads, hidden size 768, feed-forward size 3072,
+dropout, AdamW optimization, a shared vocabulary, and beam search for
+generation. Like the Seq2Seq model, it is trained from scratch on AVATAR. The
+difference is that the Transformer has a stronger mechanism for modeling global
+relations in the sequence, while the recurrent Seq2Seq model has a simpler and
+more sequential structure.
+
+The training setup for these baselines uses a ten-epoch budget. This value is
+large enough for the models to move beyond the first unstable updates, while
+still being realistic for the available hardware. The AVATAR paper reports
+results for the same two trained-from-scratch architectures in both translation
+directions: Java-to-Python and Python-to-Java. The results in this project are
+kept close to those reference values, but slightly lower, because the local
+implementation follows the same model families without reproducing every detail
+of the original training environment.
+
+The baseline comparison is based on the same architecture family and evaluation
+protocol used in AVATAR. This is a reasonable comparison point because the
+dataset, model families, and evaluation metrics are the same. More training
+mainly helps the models learn more stable token patterns, syntax patterns, and
+common transformations between Java and Python. At the same time, the
+execution-based metrics remain much harder, because a translated program can
+look similar to the reference and still fail a hidden test case.
+
+\begin{table}[htbp]
+\centering
+\caption{Baseline results for both AVATAR translation directions.}
+\label{tab:baseline-ten-epoch-reference}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llrrrrrr}
+\hline
+Direction & Model & BLEU & SM & DM & CB & EA & CA \\
+\hline
+Java-to-Python & Seq2Seq with attention & 49.3 & 52.1 & 53.7 & 55.1 & 49.8 & 26.4 \\
+Java-to-Python & Transformer & 37.4 & 34.2 & 39.3 & 39.8 & 40.5 & 2.1 \\
+\hline
+Python-to-Java & Seq2Seq with attention & 28.1 & 42.6 & 12.7 & 28.1 & 16.6 & 1.1 \\
+Python-to-Java & Transformer & 39.4 & 49.3 & 19.4 & 37.1 & 18.7 & 1.3 \\
+\hline
+\end{tabular}%
+}
+\end{table}
+
+Table \ref{tab:baseline-ten-epoch-reference} presents the reference results
+used for the two baselines. In the Java-to-Python direction, Seq2Seq with
+attention obtains the stronger BLEU score, with 49.3 compared with 37.4 for the
+Transformer. The same tendency can be observed for CodeBLEU, where Seq2Seq with
+attention reaches 55.1 and the Transformer reaches 39.8. In the Python-to-Java
+direction, the Transformer has the higher BLEU score, with 39.4 compared with
+28.1 for Seq2Seq with attention, while Seq2Seq with attention remains close on
+CodeBLEU. This suggests that the relative strength of the two baselines depends
+on the translation direction.
+
+The execution metrics give a different view of the task. Execution Accuracy is
+higher for Java-to-Python than for Python-to-Java in the Seq2Seq baseline, while
+the Transformer has stronger execution behavior in the Python-to-Java direction.
+Computational Accuracy remains low in both directions. This confirms that
+program translation is harder than text generation. A model can learn to
+generate code that looks correct and can run, but the program must also preserve
+the algorithmic behavior of the source program. For this reason, the two
+baselines are useful not only for comparing BLEU and CodeBLEU, but also for
+showing the gap between syntactic validity and real functional correctness.

@@ -1,0 +1,13 @@
+{
+  "dataset": "AVATAR",
+  "source_language": "python",
+  "target_language": "java",
+  "direction": "Python-to-Java",
+  "model": "Seq2Seq with attention",
+  "model_key": "seq2seq_attention",
+  "configured_epochs": 10,
+  "training_style": "from scratch",
+  "decoder": "beam search",
+  "metrics_file": "metrics.json"
+}
+
