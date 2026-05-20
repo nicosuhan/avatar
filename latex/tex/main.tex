@@ -59,6 +59,31 @@
 
 % Listări de cod
 \usepackage{listings}
+\usepackage[most]{tcolorbox}
+
+\newtcblisting{promptbox}[1][]{
+    enhanced,
+    breakable,
+    colback=black!2,
+    colframe=black!55,
+    coltitle=black,
+    fonttitle=\bfseries,
+    boxrule=0.4pt,
+    arc=1mm,
+    left=2mm,
+    right=2mm,
+    top=1mm,
+    bottom=1mm,
+    listing only,
+    listing options={
+        basicstyle=\ttfamily\small,
+        breaklines=true,
+        columns=fullflexible,
+        keepspaces=true,
+        showstringspaces=false
+    },
+    #1
+}
 
 % Linkuri interactive în PDF
 \usepackage[

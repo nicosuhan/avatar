@@ -46,14 +46,14 @@ difference is that the Transformer has a stronger mechanism for modeling global
 relations in the sequence, while the recurrent Seq2Seq model has a simpler and
 more sequential structure.
 
-The training setup for these baselines uses a ten-epoch budget. This value is
-large enough for the models to move beyond the first unstable updates, while
-still being realistic for the available hardware. The AVATAR paper reports
-results for the same two trained-from-scratch architectures in both translation
-directions: Java-to-Python and Python-to-Java. The results in this project are
-kept close to those reference values, but slightly lower, because the local
-implementation follows the same model families without reproducing every detail
-of the original training environment.
+The training setup for the local baseline scripts uses a ten-epoch budget. This
+value is large enough for the models to move beyond the first unstable updates,
+while still being realistic for the available hardware. For comparison, the
+AVATAR paper reports reference results for the same two trained-from-scratch
+architectures in both translation directions: Java-to-Python and
+Python-to-Java. The values in Table
+\ref{tab:avatar-paper-baseline-reference} are the paper reference values for
+program translation, not inflated local estimates.
 
 The baseline comparison is based on the same architecture family and evaluation
 protocol used in AVATAR. This is a reasonable comparison point because the
@@ -65,39 +65,140 @@ look similar to the reference and still fail a hidden test case.
 
 \begin{table}[htbp]
 \centering
-\caption{Baseline results for both AVATAR translation directions.}
-\label{tab:baseline-ten-epoch-reference}
+\caption{AVATAR paper baseline results for both program translation directions.}
+\label{tab:avatar-paper-baseline-reference}
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{llrrrrrr}
 \hline
 Direction & Model & BLEU & SM & DM & CB & EA & CA \\
 \hline
-Java-to-Python & Seq2Seq with attention & 49.3 & 52.1 & 53.7 & 55.1 & 49.8 & 26.4 \\
-Java-to-Python & Transformer & 37.4 & 34.2 & 39.3 & 39.8 & 40.5 & 2.1 \\
+Java-to-Python & Seq2Seq with attention & 57.4 & 40.9 & 34.8 & 42.6 & 92.2 & 2.8 \\
+Java-to-Python & Transformer & 39.6 & 35.0 & 33.5 & 34.8 & 92.3 & 0.4 \\
 \hline
-Python-to-Java & Seq2Seq with attention & 28.1 & 42.6 & 12.7 & 28.1 & 16.6 & 1.1 \\
-Python-to-Java & Transformer & 39.4 & 49.3 & 19.4 & 37.1 & 18.7 & 1.3 \\
+Python-to-Java & Seq2Seq with attention & 59.5 & 50.1 & 26.6 & 43.0 & 48.4 & 0.8 \\
+Python-to-Java & Transformer & 43.5 & 44.9 & 25.2 & 35.6 & 63.8 & 0.4 \\
 \hline
 \end{tabular}%
 }
 \end{table}
 
-Table \ref{tab:baseline-ten-epoch-reference} presents the reference results
+Table \ref{tab:avatar-paper-baseline-reference} presents the reference results
 used for the two baselines. In the Java-to-Python direction, Seq2Seq with
-attention obtains the stronger BLEU score, with 49.3 compared with 37.4 for the
+attention obtains the stronger BLEU score, with 57.4 compared with 39.6 for the
 Transformer. The same tendency can be observed for CodeBLEU, where Seq2Seq with
-attention reaches 55.1 and the Transformer reaches 39.8. In the Python-to-Java
-direction, the Transformer has the higher BLEU score, with 39.4 compared with
-28.1 for Seq2Seq with attention, while Seq2Seq with attention remains close on
-CodeBLEU. This suggests that the relative strength of the two baselines depends
-on the translation direction.
+attention reaches 42.6 and the Transformer reaches 34.8. In the Python-to-Java
+direction, Seq2Seq with attention also has the higher BLEU score, with 59.5
+compared with 43.5 for the Transformer, and the higher CodeBLEU score, with
+43.0 compared with 35.6. This suggests that the recurrent baseline remains
+competitive on match-based metrics even though both models are much weaker on
+functional correctness.
 
 The execution metrics give a different view of the task. Execution Accuracy is
-higher for Java-to-Python than for Python-to-Java in the Seq2Seq baseline, while
-the Transformer has stronger execution behavior in the Python-to-Java direction.
-Computational Accuracy remains low in both directions. This confirms that
-program translation is harder than text generation. A model can learn to
-generate code that looks correct and can run, but the program must also preserve
-the algorithmic behavior of the source program. For this reason, the two
-baselines are useful not only for comparing BLEU and CodeBLEU, but also for
-showing the gap between syntactic validity and real functional correctness.
+higher than Computational Accuracy in all four baseline settings. For example,
+the Java-to-Python baselines execute in more than 92\% of the tested cases, but
+their Computational Accuracy is only 2.8 for Seq2Seq with attention and 0.4 for
+the Transformer. This confirms that program translation is harder than producing
+code that simply compiles and runs. A model can generate code that looks correct
+and can execute, but the program must also preserve the algorithmic behavior of
+the source program. For this reason, the two baselines are useful not only for
+comparing BLEU and CodeBLEU, but also for showing the gap between syntactic
+validity and real functional correctness.
+
+\section{Zero-Shot Solution with Qwen2.5-Coder}
+
+\quad The first new solution implemented in this project is a zero-shot
+translator based on Qwen2.5-Coder-7B-Instruct. Qwen2.5-Coder is a family of
+code-oriented large language models trained for code generation, reasoning, and
+repair tasks \cite{hui2024qwen25coder}. The selected checkpoint has 7.61
+billion parameters \cite{qwen2024qwen25coder7b}. This model was chosen because
+it is newer and more code-specialized than the models used in the AVATAR paper,
+while still being small enough to run on free Kaggle hardware with 4-bit
+quantization.
+
+The method is zero-shot because the model is not fine-tuned on AVATAR and the
+prompt contains no examples. For each test program, the script gives the model a
+short instruction and the token-spaced source program. The two translation
+directions, Java-to-Python and Python-to-Java, are processed in the same run in
+round-robin batches of 12 examples. Each completed batch is saved as a separate
+prediction file, so the run can be resumed if the Kaggle session stops.
+
+\begin{promptbox}[title={System prompts}]
+Java-to-Python:
+You translate competitive-programming programs from token-spaced java into valid python. Return only python source code.
+
+Python-to-Java:
+You translate competitive-programming programs from token-spaced python into valid java. Return only java source code.
+\end{promptbox}
+
+The user prompt asks the model to reconstruct the source program from the
+token-spaced input and then write complete normal source code in the target
+language. It also contains direction-specific restrictions. For Python output,
+the prompt forbids Java-specific constructs such as \texttt{Scanner},
+\texttt{System.out.println}, \texttt{charAt}, and \texttt{toCharArray}. For Java
+output, it forbids Python-specific constructs such as \texttt{def},
+\texttt{range}, \texttt{print}, \texttt{zfill}, and invalid translations of
+Python exponentiation such as \texttt{* *}. The decoding is deterministic:
+sampling is disabled and the temperature is set to zero.
+
+\begin{promptbox}[title={Base user prompt template}]
+Translate this token-spaced {src_lang} program into normal {tgt_lang} source code.
+
+Important:
+- Reconstruct the source program before translating it.
+- NEW_LINE means a line break. INDENT and DEDENT describe Python-style block nesting in the source.
+- Preserve the algorithm, constants, input/output behavior, and edge cases.
+- Write complete runnable {tgt_lang} code.
+- Do not copy {src_lang} libraries, methods, wrappers, or syntax into the answer.
+- Output normal {tgt_lang} source code, not a token stream.
+- Keep hardcoded values hardcoded. Only read input when the source program reads input.
+- Mentally check the final code for valid {tgt_lang} syntax before returning it.
+
+Target language: {tgt_lang}
+{target_examples}
+
+Return only the translated {tgt_lang} source code. Do not explain. Do not use Markdown.
+
+Source tokenized {src_lang} program:
+{code}
+\end{promptbox}
+
+\begin{promptbox}[title={Python target prompt addition}]
+Python output requirements:
+- Output Python code only.
+- Do not use Java syntax such as public, static, void, class Main, Scanner, String[] args, System.out.println, System.out.printf, charAt, toCharArray, or semicolons as statement endings.
+- Use Python input(), sys.stdin, print(), sys.stdout.write(), lists, strings, math, and normal Python functions/classes where appropriate.
+- Translate Java string methods to Python: s.charAt(i) becomes s[i], s.length() becomes len(s), toCharArray() becomes the same string or list(s).
+- Translate Java Math methods to Python math functions or operators.
+- If Java uses geometry/library objects, reimplement the math with Python functions, tuples, or complex numbers. Do not call methods like intersects(), distance(), p1, or p2 on tuples.
+- Avoid shadowing Python builtins such as len, str, input, sum, max, min, list, dict, and set.
+\end{promptbox}
+
+\begin{promptbox}[title={Java target prompt addition}]
+Java output requirements:
+- Output Java code only.
+- Do not use Python syntax such as def, print(), range(), while True, import sys, list methods, string zfill, or colon-based blocks.
+- Use Java Scanner/BufferedReader/StringTokenizer only when the source reads input. Keep hardcoded test values hardcoded.
+- Use System.out.print/println/printf, arrays, ArrayList, StringBuilder, Math, braces, and semicolons where appropriate.
+- Translate Python ** to Java Math.pow(...) or direct multiplication; never output * *.
+- Translate Python zfill(n) to zero padding with String.format(...).replace(' ', '0') or equivalent Java code.
+- Initialize boolean sieve arrays correctly, usually with Arrays.fill(prime, true), before marking composites.
+- Methods called from main should be static unless they are called through an object.
+\end{promptbox}
+
+Early tests showed that asking the model to directly generate the AVATAR token
+stream was unreliable. Because of this, the final script asks Qwen to generate
+normal target-language source code first. A deterministic post-processing step
+then converts this code back into the tokenized format used by AVATAR. For
+Python, the tokenizer recovers \texttt{NEW\_LINE}, \texttt{INDENT}, and
+\texttt{DEDENT}; for Java, it produces a flat lexical token stream. The
+post-processor also keeps important literals intact, for example
+\texttt{"01809"} and \texttt{'0'}, while still representing spaces inside
+natural-language strings with the dataset placeholder style.
+
+This solution is useful because it tests how far a recent instruction-tuned code
+model can go without task-specific training. Its main limitation is that the
+model can still produce code that looks plausible but is not functionally
+correct. In the first generated batches, some predictions still contained
+incorrect imports, source-language idioms, or small algorithmic changes. For
+this reason, the zero-shot solution is treated as a modern LLM baseline, not as
+a guaranteed correct translator.

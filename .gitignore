@@ -6,6 +6,27 @@ NUL
 
 .vscode/
 
+# Local secrets
+.secrets/
+
+# Generated zero-shot API outputs
+*.pred
+outputs/qwen3_coder_free_run*.log
+outputs/qwen3_coder_free_zeroshot_*/
+outputs/qwen25_coder_7b_zeroshot_*/
+outputs/qwen25_coder_7b_hf_zeroshot_*/
+
+# Generated baseline outputs
+outputs/seq2seq_java2python/*
+outputs/seq2seq_python2java/*
+outputs/transformer_java2python/*
+outputs/transformer_python2java/*
+
+# Local metric runs
+results/baseline_results/
+results/zeroshot_qwen_metrics/
+runs/
+
 # LaTeX generated output
 latex/out/*
 !latex/out/main.pdf

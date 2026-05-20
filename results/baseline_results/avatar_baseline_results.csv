@@ -1,6 +1,0 @@
-direction,model,bleu,syntax_match,dataflow_match,codebleu,execution_accuracy,computational_accuracy
-Java-to-Python,Seq2Seq with attention,49.3,52.1,53.7,55.1,49.8,26.4
-Java-to-Python,Transformer,37.4,34.2,39.3,39.8,40.5,2.1
-Python-to-Java,Seq2Seq with attention,28.1,42.6,12.7,28.1,16.6,1.1
-Python-to-Java,Transformer,39.4,49.3,19.4,37.1,18.7,1.3
-

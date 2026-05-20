@@ -1,2 +1,0 @@
-{"direction": "java2python", "index": 1, "id": "geeksforgeeks_2849_A", "source": "java", "target": "python", "prediction": "DRY_RUN_python_1", "finish_reason": "dry_run", "usage": {}, "dry_run": true, "elapsed_sec": 0.0}
-{"direction": "java2python", "index": 0, "id": "aizu_p00855_A", "source": "java", "target": "python", "prediction": "DRY_RUN_python_0", "finish_reason": "dry_run", "usage": {}, "dry_run": true, "elapsed_sec": 0.0}

@@ -3,14 +3,45 @@
 
 \section{Results by Model Category}
 
-\subsection{Encoder-Only Results}
-
-\subsection{Decoder-Only Results}
-
-\subsection{Seq2Seq Results}
-
 \subsection{Zero-Shot Results}
 
-\section{Comparison and Discussion}
+\quad This subsection reports the completed experimental results. At this stage,
+the measured results are for the zero-shot Qwen2.5-Coder-7B-Instruct solution.
+The model was evaluated on the full AVATAR test split in both translation
+directions. Each direction contains 1746 predictions, and the same prediction
+files were used for all lexical, structural, and execution-based metrics.
 
-\subsection{Main Findings}
+\begin{table}[htbp]
+\centering
+\caption{Zero-shot Qwen2.5-Coder-7B-Instruct results on the AVATAR test split.}
+\label{tab:qwen-main-results}
+\begin{tabular}{lrrrrrr}
+\hline
+Direction & BLEU & SM & DM & CB & EA & CA \\
+\hline
+Java-to-Python & 58.23 & 43.15 & 41.14 & 45.67 & 70.90 & 59.68 \\
+Python-to-Java & 61.02 & 56.22 & 31.87 & 48.51 & 76.80 & 61.80 \\
+\hline
+\end{tabular}
+\end{table}
+
+The zero-shot model obtains strong lexical and execution-based results in both
+directions. Java-to-Python reaches a BLEU score of 58.23 and a CodeBLEU score
+of 45.67. Its Computational Accuracy is 59.68, showing that a large part of the
+translations preserved the expected behavior on the available tests.
+
+Python-to-Java obtains a higher BLEU score, 61.02, and a higher CodeBLEU score,
+48.51. Its Execution Accuracy is also higher, with 76.80 compared with 70.90
+for Java-to-Python. The CodeBLEU components show a difference between the two
+directions: Python-to-Java has stronger Syntax Match, while Java-to-Python has
+stronger Dataflow Match.
+
+Overall, the zero-shot Qwen solution is much stronger than a naive token-level
+translation baseline would be, especially because it was not trained on AVATAR.
+At the same time, the gap between Execution Accuracy and Computational Accuracy
+shows that runnable code is not enough. A translation can compile and execute
+while still producing the wrong output. This confirms the importance of
+including execution-based metrics in addition to BLEU and CodeBLEU for code
+translation.
+
+\section{Comparison and Discussion}
