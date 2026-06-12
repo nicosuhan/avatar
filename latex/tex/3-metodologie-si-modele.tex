@@ -1,204 +1,127 @@
 % !TeX root = main.tex
 \chapter{Methodology}
 
-\section{Baselines}
+\section{Baseline}
 
-\quad The baseline part of this project follows the trained-from-scratch models
-from the AVATAR paper \cite{ahmad2023avatar}. Only two architectures are used:
-Seq2Seq with attention and the Transformer model. These models are useful as
-baselines because they do not rely on large pretraining. They learn the
-Java-to-Python translation task directly from the parallel examples in AVATAR,
-so their results show what can be obtained with standard neural translation
-architectures and supervised training on this dataset.
+\quad The reference baseline for this project is the trained-from-scratch
+Transformer used in the AVATAR paper \cite{ahmad2023avatar}. It is kept as a
+comparison point because it uses the same benchmark and the same translation
+directions, but it does not benefit from code pretraining or instruction
+tuning. The model is a standard encoder-decoder Transformer
+\cite{vaswani2017transformer}: the encoder reads the token-spaced source
+program, the decoder generates the token-spaced target program, and
+self-attention allows both sides to model dependencies between distant tokens.
 
-The first model is Seq2Seq with attention. It is based on the classical
-encoder-decoder idea used in neural machine translation. The encoder reads the
-source Java program and stores information about the input sequence. The decoder
-then generates the Python program one token at a time. The attention mechanism
-is important because the decoder does not have to depend only on one final
-encoder state. Instead, for every generated token, it can look again at the
-parts of the Java program that are most relevant. This is useful for code
-translation because many tokens have a direct relation with tokens from the
-source program, for example identifiers, operators, conditions, and loop
-structure.
-
-In this project, the Seq2Seq baseline is implemented with LSTM layers. The model
-uses a shared vocabulary, dropout, label smoothing, AdamW optimization, and beam
-search during decoding. This makes it a simple but complete neural baseline for
-the AVATAR task. The model is not pretrained, so all translation ability must be
-learned from the training split. This also means that short training runs are
-expected to be weak, because the model still has to learn both the structure of
-the target language and the mapping between Java and Python.
-
-The second model is the Transformer. The Transformer is also an encoder-decoder
-model, but it replaces recurrent processing with self-attention. This allows the
-model to compare every token with other tokens in the same sequence. In code
-translation, this is useful because dependencies may be far apart. A variable
-can be declared at the beginning of a program and used much later, or a loop
-condition can influence statements inside a nested block. Self-attention gives
-the model a direct way to learn these relations.
-
-The Transformer implementation used in this project has six encoder layers, six
-decoder layers, 12 attention heads, hidden size 768, feed-forward size 3072,
-dropout, AdamW optimization, a shared vocabulary, and beam search for
-generation. Like the Seq2Seq model, it is trained from scratch on AVATAR. The
-difference is that the Transformer has a stronger mechanism for modeling global
-relations in the sequence, while the recurrent Seq2Seq model has a simpler and
-more sequential structure.
-
-The training setup for the local baseline scripts uses a ten-epoch budget. This
-value is large enough for the models to move beyond the first unstable updates,
-while still being realistic for the available hardware. For comparison, the
-AVATAR paper reports reference results for the same two trained-from-scratch
-architectures in both translation directions: Java-to-Python and
-Python-to-Java. The values in Table
-\ref{tab:avatar-paper-baseline-reference} are the paper reference values for
-program translation, not inflated local estimates.
-
-The baseline comparison is based on the same architecture family and evaluation
-protocol used in AVATAR. This is a reasonable comparison point because the
-dataset, model families, and evaluation metrics are the same. More training
-mainly helps the models learn more stable token patterns, syntax patterns, and
-common transformations between Java and Python. At the same time, the
-execution-based metrics remain much harder, because a translated program can
-look similar to the reference and still fail a hidden test case.
-
-\begin{table}[htbp]
-\centering
-\caption{AVATAR paper baseline results for both program translation directions.}
-\label{tab:avatar-paper-baseline-reference}
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{llrrrrrr}
-\hline
-Direction & Model & BLEU & SM & DM & CB & EA & CA \\
-\hline
-Java-to-Python & Seq2Seq with attention & 57.4 & 40.9 & 34.8 & 42.6 & 92.2 & 2.8 \\
-Java-to-Python & Transformer & 39.6 & 35.0 & 33.5 & 34.8 & 92.3 & 0.4 \\
-\hline
-Python-to-Java & Seq2Seq with attention & 59.5 & 50.1 & 26.6 & 43.0 & 48.4 & 0.8 \\
-Python-to-Java & Transformer & 43.5 & 44.9 & 25.2 & 35.6 & 63.8 & 0.4 \\
-\hline
-\end{tabular}%
-}
-\end{table}
-
-Table \ref{tab:avatar-paper-baseline-reference} presents the reference results
-used for the two baselines. In the Java-to-Python direction, Seq2Seq with
-attention obtains the stronger BLEU score, with 57.4 compared with 39.6 for the
-Transformer. The same tendency can be observed for CodeBLEU, where Seq2Seq with
-attention reaches 42.6 and the Transformer reaches 34.8. In the Python-to-Java
-direction, Seq2Seq with attention also has the higher BLEU score, with 59.5
-compared with 43.5 for the Transformer, and the higher CodeBLEU score, with
-43.0 compared with 35.6. This suggests that the recurrent baseline remains
-competitive on match-based metrics even though both models are much weaker on
-functional correctness.
-
-The execution metrics give a different view of the task. Execution Accuracy is
-higher than Computational Accuracy in all four baseline settings. For example,
-the Java-to-Python baselines execute in more than 92\% of the tested cases, but
-their Computational Accuracy is only 2.8 for Seq2Seq with attention and 0.4 for
-the Transformer. This confirms that program translation is harder than producing
-code that simply compiles and runs. A model can generate code that looks correct
-and can execute, but the program must also preserve the algorithmic behavior of
-the source program. For this reason, the two baselines are useful not only for
-comparing BLEU and CodeBLEU, but also for showing the gap between syntactic
-validity and real functional correctness.
+The local baseline script follows this architecture with six encoder layers,
+six decoder layers, shared token embeddings, AdamW optimization, label
+smoothing, and beam search. Its role in the thesis is not to be the main
+system, but to show the starting point provided by a supervised neural
+translator trained only on AVATAR. This makes the later pretrained solutions
+easier to interpret: any improvement can be related to the effect of
+pretraining, prompting, or parameter-efficient fine-tuning rather than only to
+the dataset itself.
 
 \section{Zero-Shot Solution with Qwen2.5-Coder}
+\label{sec:zero-shot-qwen}
 
-\quad The first new solution implemented in this project is a zero-shot
-translator based on Qwen2.5-Coder-7B-Instruct. Qwen2.5-Coder is a family of
-code-oriented large language models trained for code generation, reasoning, and
-repair tasks \cite{hui2024qwen25coder}. The selected checkpoint has 7.61
-billion parameters \cite{qwen2024qwen25coder7b}. This model was chosen because
-it is newer and more code-specialized than the models used in the AVATAR paper,
-while still being small enough to run on free Kaggle hardware with 4-bit
-quantization.
+\quad The first implemented solution is a zero-shot translator based on
+Qwen2.5-Coder-7B-Instruct. Qwen2.5-Coder is a family of code-oriented large
+language models trained for code generation, reasoning, and repair
+\cite{hui2024qwen25coder}. The selected checkpoint has 7.61 billion
+parameters \cite{qwen2024qwen25coder7b}. This setting is called zero-shot
+because the model is not fine-tuned on AVATAR and the prompt contains no
+worked examples from the benchmark.
 
-The method is zero-shot because the model is not fine-tuned on AVATAR and the
-prompt contains no examples. For each test program, the script gives the model a
-short instruction and the token-spaced source program. The two translation
-directions, Java-to-Python and Python-to-Java, are processed in the same run in
-round-robin batches of 12 examples. Each completed batch is saved as a separate
-prediction file, so the run can be resumed if the Kaggle session stops.
+For each test program, the script sends the token-spaced source program to the
+chat model with a direction-specific instruction. The prompt asks the model to
+reconstruct the source program internally and return complete normal source
+code in the target language. Additional rules discourage source-language
+leakage: Java-to-Python prompts reject constructs such as \texttt{Scanner} and
+\texttt{System.out.println}, while Python-to-Java prompts reject constructs
+such as \texttt{def}, \texttt{range}, and Python exponentiation syntax.
+Decoding is deterministic, with sampling disabled, so the same input and
+checkpoint produce the same translation.
 
-\begin{promptbox}[title={System prompts}]
-Java-to-Python:
-You translate competitive-programming programs from token-spaced java into valid python. Return only python source code.
+The zero-shot pipeline deliberately separates generation from AVATAR
+formatting. Early tests showed that directly asking Qwen to generate the
+dataset token stream was less reliable than asking for normal code. Therefore,
+the final script first generates ordinary Python or Java code, then applies a
+deterministic tokenizer that converts the output back into AVATAR's
+token-spaced representation. This design tests the ability of a modern
+instruction-tuned model to perform code translation without supervised
+benchmark training. The full prompt templates are included in Appendix
+\ref{appendix:zero-shot-prompts}.
 
-Python-to-Java:
-You translate competitive-programming programs from token-spaced python into valid java. Return only java source code.
-\end{promptbox}
+\section{Encoder-Only Solution with UniXcoder}
 
-The user prompt asks the model to reconstruct the source program from the
-token-spaced input and then write complete normal source code in the target
-language. It also contains direction-specific restrictions. For Python output,
-the prompt forbids Java-specific constructs such as \texttt{Scanner},
-\texttt{System.out.println}, \texttt{charAt}, and \texttt{toCharArray}. For Java
-output, it forbids Python-specific constructs such as \texttt{def},
-\texttt{range}, \texttt{print}, \texttt{zfill}, and invalid translations of
-Python exponentiation such as \texttt{* *}. The decoding is deterministic:
-sampling is disabled and the temperature is set to zero.
+\quad The second solution studies an encoder-only pretrained model. It uses
+\texttt{microsoft/}\allowbreak\texttt{unixcoder-base} \cite{guo2022unixcoder}
+as the source-side encoder and adds a newly trained Transformer decoder for
+generation. This design answers a specific question: how much does a pretrained
+code representation help if only the encoder is reused and the target-language
+generator is learned from AVATAR?
 
-\begin{promptbox}[title={Base user prompt template}]
-Translate this token-spaced {src_lang} program into normal {tgt_lang} source code.
+The UniXcoder encoder receives the token-spaced source program and produces
+contextual source states. The added decoder is a four-layer Transformer decoder
+with causal self-attention, cross-attention over the encoder states, learned
+target positions, and an output projection tied to the encoder token
+embeddings. During training, the target program is shifted in the usual
+teacher-forcing setup: the decoder sees the previous target tokens and learns
+to predict the next one. During generation, it performs greedy autoregressive
+decoding until the end token or the maximum target length is reached.
 
-Important:
-- Reconstruct the source program before translating it.
-- NEW_LINE means a line break. INDENT and DEDENT describe Python-style block nesting in the source.
-- Preserve the algorithm, constants, input/output behavior, and edge cases.
-- Write complete runnable {tgt_lang} code.
-- Do not copy {src_lang} libraries, methods, wrappers, or syntax into the answer.
-- Output normal {tgt_lang} source code, not a token stream.
-- Keep hardcoded values hardcoded. Only read input when the source program reads input.
-- Mentally check the final code for valid {tgt_lang} syntax before returning it.
+This approach is intentionally asymmetric. The source side starts from a
+pretrained code model, while the target side has to learn syntax, formatting,
+and translation behavior from the parallel AVATAR examples. It is therefore a
+useful middle point between the scratch Transformer baseline and fully
+pretrained encoder-decoder models. If the encoder-only model performs well, the
+source representation alone is carrying much of the translation signal; if it
+performs weakly on execution metrics, the missing pretrained decoder is a likely
+limitation.
 
-Target language: {tgt_lang}
-{target_examples}
+\section{Decoder-Only Solution with Qwen2.5-Coder}
 
-Return only the translated {tgt_lang} source code. Do not explain. Do not use Markdown.
+\quad The third solution fine-tunes a decoder-only instruction model:
+Qwen2.5-Coder-0.5B-\allowbreak Instruct \cite{qwen2024qwen25coder05b}. Unlike the
+zero-shot system, this model is trained on AVATAR examples. Unlike the
+encoder-only system, it has no separate encoder; translation is represented as
+conditional language modeling over a prompt and a target token stream.
 
-Source tokenized {src_lang} program:
-{code}
-\end{promptbox}
+Each training example is converted into a chat-style prompt that asks for a
+translation from token-spaced source code into token-spaced target code. The
+prompt tokens and the target tokens are concatenated into one causal sequence.
+The loss is applied only to the target part, so the model learns to continue
+the prompt with the correct translation rather than to reproduce the prompt
+itself.
 
-\begin{promptbox}[title={Python target prompt addition}]
-Python output requirements:
-- Output Python code only.
-- Do not use Java syntax such as public, static, void, class Main, Scanner, String[] args, System.out.println, System.out.printf, charAt, toCharArray, or semicolons as statement endings.
-- Use Python input(), sys.stdin, print(), sys.stdout.write(), lists, strings, math, and normal Python functions/classes where appropriate.
-- Translate Java string methods to Python: s.charAt(i) becomes s[i], s.length() becomes len(s), toCharArray() becomes the same string or list(s).
-- Translate Java Math methods to Python math functions or operators.
-- If Java uses geometry/library objects, reimplement the math with Python functions, tuples, or complex numbers. Do not call methods like intersects(), distance(), p1, or p2 on tuples.
-- Avoid shadowing Python builtins such as len, str, input, sum, max, min, list, dict, and set.
-\end{promptbox}
+The implementation uses a QLoRA-style setup \cite{dettmers2023qlora}: the base
+model is loaded in 4-bit precision, and only small LoRA adapters
+\cite{hu2022lora} are trained on selected attention projection matrices. This
+makes the decoder-only experiment practical on Kaggle hardware while still
+testing whether an instruction-tuned causal code model can adapt to AVATAR's
+exact token representation. The method also exposes a tradeoff: the model
+already has strong code knowledge, but the causal prompt format must fit both
+the source program and the target program inside one context window.
 
-\begin{promptbox}[title={Java target prompt addition}]
-Java output requirements:
-- Output Java code only.
-- Do not use Python syntax such as def, print(), range(), while True, import sys, list methods, string zfill, or colon-based blocks.
-- Use Java Scanner/BufferedReader/StringTokenizer only when the source reads input. Keep hardcoded test values hardcoded.
-- Use System.out.print/println/printf, arrays, ArrayList, StringBuilder, Math, braces, and semicolons where appropriate.
-- Translate Python ** to Java Math.pow(...) or direct multiplication; never output * *.
-- Translate Python zfill(n) to zero padding with String.format(...).replace(' ', '0') or equivalent Java code.
-- Initialize boolean sieve arrays correctly, usually with Arrays.fill(prime, true), before marking composites.
-- Methods called from main should be static unless they are called through an object.
-\end{promptbox}
+\section{Seq2Seq Solution with CodeT5+}
 
-Early tests showed that asking the model to directly generate the AVATAR token
-stream was unreliable. Because of this, the final script asks Qwen to generate
-normal target-language source code first. A deterministic post-processing step
-then converts this code back into the tokenized format used by AVATAR. For
-Python, the tokenizer recovers \texttt{NEW\_LINE}, \texttt{INDENT}, and
-\texttt{DEDENT}; for Java, it produces a flat lexical token stream. The
-post-processor also keeps important literals intact, for example
-\texttt{"01809"} and \texttt{'0'}, while still representing spaces inside
-natural-language strings with the dataset placeholder style.
+\quad The fourth solution is a pretrained encoder-decoder translator based on
+CodeT5+ 220M \cite{wang2023codet5plus}. This model is closest to the classical
+neural machine translation formulation used by the baseline, because one side
+encodes the source program and the other side decodes the target program. The
+main difference is that both sides start from code pretraining rather than from
+random initialization.
 
-This solution is useful because it tests how far a recent instruction-tuned code
-model can go without task-specific training. Its main limitation is that the
-model can still produce code that looks plausible but is not functionally
-correct. In the first generated batches, some predictions still contained
-incorrect imports, source-language idioms, or small algorithmic changes. For
-this reason, the zero-shot solution is treated as a modern LLM baseline, not as
-a guaranteed correct translator.
+The selected checkpoint, \texttt{Salesforce/codet5p-220m}, is loaded through
+the Hugging Face \texttt{AutoModelForSeq2SeqLM} interface
+\cite{wolf2020transformers}. The encoder receives the AVATAR token-spaced
+source program, and the decoder is trained to generate the token-spaced target
+program directly.
+
+The method uses the standard conditional generation objective for
+encoder-decoder models. During training, the encoder input is the source token
+sequence and the decoder target is the shifted target token sequence. During
+generation, the encoder states remain fixed while the decoder produces the
+translation autoregressively. This keeps the translation task explicit: the
+source program and target program are represented as two separate sequences,
+instead of being packed into one causal prompt.

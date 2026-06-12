@@ -1,2 +1,69 @@
 % !TeX root = main.tex
 \chapter{Experimental Setup}
+
+\section{Zero-Shot Qwen2.5-Coder}
+
+\quad The zero-shot experiment is implemented in
+\texttt{zeroshot\_qwen\_kaggle.py}. It uses
+\texttt{Qwen/}\allowbreak\texttt{Qwen2.5-Coder-7B-Instruct} with the Hugging
+Face causal language model interface \cite{wolf2020transformers}. The model is
+loaded on one GPU with 4-bit NF4 quantization, half-precision compute, remote
+model code enabled, and left-padded tokenization. No AVATAR training is
+performed. The script evaluates the full test split in both directions,
+Java-to-Python and Python-to-Java.
+
+The run configuration disables sampling, uses one decoding beam, sets the
+temperature to zero, keeps the repetition penalty at 1.0, and allows up to 1024
+new tokens. The batch size is 12 prompts and the seed is 0.
+
+\section{Encoder-Only UniXcoder}
+
+\quad The encoder-only experiment is implemented in
+\texttt{encoder\_only\_unixcoder\_kaggle.py}. It uses
+\texttt{microsoft/}\allowbreak\texttt{unixcoder-base} \cite{guo2022unixcoder}
+as a pretrained source encoder and adds a four-layer Transformer decoder. The
+encoder remains trainable, encoder gradient checkpointing is enabled, and the
+decoder uses dropout 0.1. The output layer is tied to the encoder token
+embedding matrix.
+
+Both directions are trained in the order Python-to-Java and Java-to-Python.
+The full train, validation, and test splits are used. Training uses three
+epochs, batch size 4, gradient accumulation over 4 steps, maximum source and
+target lengths of 512 tokens, label smoothing 0.1, weight decay 0.01, warmup
+ratio 0.06, gradient clipping at 1.0, and seed 1234. The encoder learning rate
+is \(2 \times 10^{-5}\), while the decoder learning rate is \(1 \times
+10^{-4}\).
+
+\section{Decoder-Only Qwen2.5-Coder}
+
+\quad The decoder-only experiment is implemented in
+\texttt{decoder\_only\_qwen\_kaggle.py}. It uses
+\texttt{Qwen/}\allowbreak\texttt{Qwen2.5-Coder-0.5B-Instruct}
+\cite{qwen2024qwen25coder05b}. The model is loaded in 4-bit NF4 precision with
+\texttt{float16} compute and fine-tuned with LoRA adapters
+\cite{hu2022lora,dettmers2023qlora}. The LoRA rank is 4, \(\alpha=8\), dropout
+is 0.05, and the target modules are \texttt{q\_proj} and \texttt{v\_proj}.
+Gradient checkpointing is disabled for this run.
+
+The script trains Python-to-Java and Java-to-Python. The run lasts one epoch
+with batch size 4, gradient accumulation over 4 steps, learning rate \(3
+\times 10^{-4}\), no weight decay, warmup ratio 0.06, gradient clipping at 1.0,
+two dataloader workers, prefetch factor 2, and seed 1234. Source and target
+lengths are capped at 320 tokens, with a maximum causal sequence length of 640
+tokens.
+
+\section{Seq2Seq CodeT5+}
+
+\quad The Seq2Seq experiment is implemented in
+\texttt{seq2seq\_codet5p\_kaggle.py}. It uses
+\texttt{Salesforce/}\allowbreak\texttt{codet5p-220m}. The model is loaded with
+the Hugging Face sequence-to-sequence interface \cite{wolf2020transformers};
+the fast tokenizer is preferred, and the script falls back to a local
+byte-level BPE tokenizer if the fast tokenizer fails validation.
+
+The task order is Java-to-Python followed by Python-to-Java, and the full
+AVATAR splits are used. Training uses two epochs, batch size 4, gradient
+accumulation over 4 steps, maximum source and target lengths of 512 tokens,
+learning rate \(5 \times 10^{-5}\), AdamW weight decay 0.01, warmup ratio
+0.06, gradient clipping at 1.0, automatic mixed precision enabled, gradient
+checkpointing disabled, two dataloader workers, and seed 1234.

@@ -37,11 +37,15 @@
 
 % Utilizează biblatex pentru referințe bibliografice
 \usepackage[
-    maxbibnames=50,
+    maxbibnames=6,
+    minbibnames=3,
+    giveninits=true,
     sorting=nty
 ]{biblatex}
 
 \addbibresource{../bibliography.bib}
+\renewcommand*{\bibfont}{\small}
+\setlength{\bibitemsep}{0.3\baselineskip}
 
 % Setează spațiere inter-linie la 1.5
 \usepackage{setspace}
@@ -183,6 +187,9 @@
 \include{5-experimente}
 \include{6-rezultate}
 \include{7-concluzii}
+
+\appendix
+\include{8-prompts}
 
 \printbibliography[heading=bibintoc]
 

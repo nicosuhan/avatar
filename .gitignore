@@ -1,53 +1,65 @@
+# Local editor, agent, and OS files
+.vscode/
+.claude/
+.remember/
+NUL
+Thumbs.db
+.DS_Store
+
 # Python environments and caches
 .venv*/
+venv/
+env/
 __pycache__/
 *.py[cod]
-NUL
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
 
-.vscode/
-
-# Local secrets
+# Local secrets and environment files
 .secrets/
+.env
+.env.*
 
-# Generated zero-shot API outputs
-*.pred
-outputs/qwen3_coder_free_run*.log
-outputs/qwen3_coder_free_zeroshot_*/
-outputs/qwen25_coder_7b_zeroshot_*/
-outputs/qwen25_coder_7b_hf_zeroshot_*/
+# Dataset copies and compiled support artifacts
+avatar/data/avatar/
+avatar/data/avatar_extLibraries/*.class
 
-# Generated baseline outputs
-outputs/seq2seq_java2python/*
-outputs/seq2seq_python2java/*
-outputs/transformer_java2python/*
-outputs/transformer_python2java/*
-
-# Local metric runs
-results/baseline_results/
-results/zeroshot_qwen_metrics/
+# Generated model outputs, predictions, and metric runs
+outputs/
+results/
 runs/
+wandb/
+mlruns/
+*.pred
+*.log
 
-# LaTeX generated output
-latex/out/*
-!latex/out/main.pdf
-latex/*.aux
-latex/*.bbl
-latex/*.bcf
-latex/*.blg
-latex/*.log
-latex/*.out
-latex/*.pdf
-latex/*.run.xml
-latex/*.synctex.gz
-latex/*.toc
+# Model weights, checkpoints, and binary artifacts
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.bin
+*.h5
+*.keras
+*.onnx
+*.npy
+*.npz
+*.pkl
+*.pickle
 
-# Local model artifacts
-results/training_artifacts/seq2seq_java2python/
-results/training_artifacts/seq2seq_python2java/
-results/training_artifacts/transformer_java2python/
-results/training_artifacts/transformer_python2java/
-results/training_artifacts/observed_*/
-results/training_artifacts/**/*.h5
-results/training_artifacts/**/ckpt-*
-results/training_artifacts/**/checkpoint
-results/training_artifacts/**/vocab.json
+# LaTeX build intermediates; thesis sources and PDFs remain trackable
+latex/out/*.aux
+latex/out/*.bbl
+latex/out/*.bcf
+latex/out/*.blg
+latex/out/*.fdb_latexmk
+latex/out/*.fls
+latex/out/*.listing
+latex/out/*.log
+latex/out/*.out
+latex/out/*.run.xml
+latex/out/*.synctex.gz
+latex/out/*.toc

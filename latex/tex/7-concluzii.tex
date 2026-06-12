@@ -3,4 +3,72 @@
 
 \section{Conclusions}
 
+\quad This thesis studied Java-Python program translation on the AVATAR
+benchmark, with an emphasis on whether modern pretrained code models can
+produce translations that are not only textually similar to the reference, but
+also functionally correct. The work compared four model categories: a
+zero-shot instruction model, an encoder-only model, a decoder-only model, and a
+Seq2Seq encoder-decoder model. This organization made it possible to compare
+different ways of using pretraining: prompting a large model directly, reusing
+only a source encoder, adapting a causal decoder with parameter-efficient
+fine-tuning, and fine-tuning a pretrained encoder-decoder model.
+
+The results show that Computational Accuracy is the most important metric for
+this task. BLEU and CodeBLEU are useful because they measure token-level and
+code-aware similarity, but they do not guarantee that the translated program
+preserves the behavior of the source program. This was visible both in the
+original AVATAR paper and in the experiments from this thesis. Several models
+produced translations that looked close to the reference, but only a smaller
+part of those translations passed the available execution tests.
+
+The strongest implemented system was the zero-shot Qwen2.5-Coder 7B model. It
+reached the highest Computational Accuracy in both translation directions,
+with 59.68 for Java-to-Python and 61.80 for Python-to-Java, even though it was
+not fine-tuned on AVATAR. This result shows the strength of recent
+instruction-tuned code models: a sufficiently capable model can solve many
+translation examples from prompting alone. The Seq2Seq CodeT5+ 220M model was
+the strongest fine-tuned system. It achieved the highest BLEU scores among the
+implemented models and strong Computational Accuracy values of 47.82 and
+41.29. This confirms that pretrained encoder-decoder models are a strong fit
+for supervised code translation.
+
+The other two model categories were useful because they clarified the limits
+of partial adaptation. The decoder-only Qwen2.5-Coder 0.5B model improved over
+the weaker reference results from the original AVATAR paper, but it remained
+below the larger zero-shot model and the Seq2Seq CodeT5+ model. The
+encoder-only UniXcoder model produced reasonable lexical similarity, but its
+functional correctness remained low. This shows that source-side pretraining
+alone is not enough for reliable program translation; the target-side generator
+also needs enough capacity and task adaptation.
+
+All experiments were implemented and run in a reproducible project structure.
+Kaggle was used as the main execution environment because it provided access to
+GPU resources and made it possible to train and evaluate models without a local
+high-end machine. The complete code for the project is available at
+\url{https://github.com/nicosuhan/avatar}.
+
 \section{Future Work}
+
+\quad The main limitation of this work was computational budget. Because the
+experiments were run on limited Kaggle resources, there was not enough time to
+train every model for more epochs or to run a wider hyperparameter search.
+Future work should therefore repeat the supervised experiments with longer
+training schedules, especially for the decoder-only and Seq2Seq models. More
+epochs could help the models adapt better to AVATAR's token-spaced format and
+could reduce the gap between lexical similarity and functional correctness.
+
+Another direction is to test larger checkpoints under the same evaluation
+protocol. The zero-shot 7B model performed very well, while the fine-tuned
+0.5B decoder-only model was much weaker. This suggests that model scale has a
+large effect on functional translation quality. Future experiments could
+fine-tune larger decoder-only models with LoRA or QLoRA
+\cite{hu2022lora,dettmers2023qlora} and compare them directly with the
+zero-shot setup.
+
+Finally, future work could improve the evaluation and error analysis. The
+current results show how many programs pass the available tests, but a deeper
+analysis could separate syntax errors, API mismatches, input-output mistakes,
+and algorithmic errors. This would make it easier to understand why a model
+fails and which architecture is best suited for each type of translation
+problem. Together with longer training and larger models, this would provide a
+clearer path toward more reliable Java-Python program translation.

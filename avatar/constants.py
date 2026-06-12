@@ -23,22 +23,6 @@ METRICS_RUNTIME = {
     "seed": 1234,
 }
 
-SEQ2SEQ_MODEL = {
-    "name": "seq2seq",
-    "embed_size": 512,
-    "encoder_hidden_size": 512,
-    "decoder_hidden_size": 512,
-    "encoder_layers": 1,
-    "decoder_layers": 1,
-    "dropout": 0.2,
-    "label_smoothing": 0.1,
-    "weight_decay": 0.01,
-    "learning_rate": 1e-3,
-    "batch_size": 16,
-    "beam_size": 5,
-    "patience": 5,
-}
-
 TRANSFORMER_MODEL = {
     "name": "transformer",
     "model_dim": 768,
@@ -57,7 +41,7 @@ TRANSFORMER_MODEL = {
 }
 
 BASE_TRAIN_CONFIG = {
-    "model": "seq2seq",
+    "model": "transformer",
     "data_dir": str(Path(DATA_ROOT) / "avatar"),
     "ext_lib_dir": str(Path(DATA_ROOT) / "avatar_extLibraries"),
     "source": "java",
@@ -77,10 +61,9 @@ BASE_TRAIN_CONFIG = {
 }
 
 TRAIN_CONFIG = {
-    "model": "seq2seq",
     **BASE_TRAIN_CONFIG,
-    **SEQ2SEQ_MODEL,
-    "output_dir": str(OUTPUT_ROOT / f"seq2seq_java2python"),
+    **TRANSFORMER_MODEL,
+    "output_dir": str(OUTPUT_ROOT / f"transformer_java2python"),
 }
 
 METRICS_CONFIG = {

@@ -1,0 +1,64 @@
+% !TeX root = main.tex
+\chapter{Prompts Used in the Zero-Shot Solution}
+\label{appendix:zero-shot-prompts}
+
+\section{System Prompts}
+
+\begin{promptbox}
+Java-to-Python:
+You translate competitive-programming programs from token-spaced java into valid python. Return only python source code.
+
+Python-to-Java:
+You translate competitive-programming programs from token-spaced python into valid java. Return only java source code.
+\end{promptbox}
+
+\section{Base User Prompt Template}
+
+\begin{promptbox}
+Translate this token-spaced {src_lang} program into normal {tgt_lang} source code.
+
+Important:
+- Reconstruct the source program before translating it.
+- NEW_LINE means a line break. INDENT and DEDENT describe Python-style block nesting in the source.
+- Preserve the algorithm, constants, input/output behavior, and edge cases.
+- Write complete runnable {tgt_lang} code.
+- Do not copy {src_lang} libraries, methods, wrappers, or syntax into the answer.
+- Output normal {tgt_lang} source code, not a token stream.
+- Keep hardcoded values hardcoded. Only read input when the source program reads input.
+- Mentally check the final code for valid {tgt_lang} syntax before returning it.
+
+Target language: {tgt_lang}
+{target_examples}
+
+Return only the translated {tgt_lang} source code. Do not explain. Do not use Markdown.
+
+Source tokenized {src_lang} program:
+{code}
+\end{promptbox}
+
+\section{Python Target Prompt Addition}
+
+\begin{promptbox}
+Python output requirements:
+- Output Python code only.
+- Do not use Java syntax such as public, static, void, class Main, Scanner, String[] args, System.out.println, System.out.printf, charAt, toCharArray, or semicolons as statement endings.
+- Use Python input(), sys.stdin, print(), sys.stdout.write(), lists, strings, math, and normal Python functions/classes where appropriate.
+- Translate Java string methods to Python: s.charAt(i) becomes s[i], s.length() becomes len(s), toCharArray() becomes the same string or list(s).
+- Translate Java Math methods to Python math functions or operators.
+- If Java uses geometry/library objects, reimplement the math with Python functions, tuples, or complex numbers. Do not call methods like intersects(), distance(), p1, or p2 on tuples.
+- Avoid shadowing Python builtins such as len, str, input, sum, max, min, list, dict, and set.
+\end{promptbox}
+
+\section{Java Target Prompt Addition}
+
+\begin{promptbox}
+Java output requirements:
+- Output Java code only.
+- Do not use Python syntax such as def, print(), range(), while True, import sys, list methods, string zfill, or colon-based blocks.
+- Use Java Scanner/BufferedReader/StringTokenizer only when the source reads input. Keep hardcoded test values hardcoded.
+- Use System.out.print/println/printf, arrays, ArrayList, StringBuilder, Math, braces, and semicolons where appropriate.
+- Translate Python ** to Java Math.pow(...) or direct multiplication; never output * *.
+- Translate Python zfill(n) to zero padding with String.format(...).replace(' ', '0') or equivalent Java code.
+- Initialize boolean sieve arrays correctly, usually with Arrays.fill(prime, true), before marking composites.
+- Methods called from main should be static unless they are called through an object.
+\end{promptbox}

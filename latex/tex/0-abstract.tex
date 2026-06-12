@@ -2,11 +2,27 @@
 \begin{abstractpage}
 
 \begin{abstract}{romanian}
-
+Această lucrare studiază traducerea automată Java-Python pe setul de date
+AVATAR, unde traducerile trebuie să păstreze comportamentul programului, nu doar
+forma codului. Sunt comparate patru soluții: zero-shot Qwen2.5-Coder-7B,
+UniXcoder encoder-only, Qwen2.5-Coder-0.5B cu QLoRA și CodeT5+ 220M Seq2Seq.
+Evaluarea folosește BLEU, CodeBLEU, verificare sintactică sau compilare,
+Execution Accuracy și Computational Accuracy. Cel mai bun sistem final este
+Qwen2.5-Coder-7B zero-shot, cu 59.68 Computational Accuracy pentru
+Java-to-Python și 61.80 pentru Python-to-Java. Dintre modelele antrenate,
+CodeT5+ 220M oferă cele mai bune rezultate funcționale.
 \end{abstract}
 
 \begin{abstract}{english}
-
+This thesis studies automatic Java-Python program translation on the AVATAR
+dataset, where translations must preserve program behavior, not only code form.
+Four solutions are compared: zero-shot Qwen2.5-Coder-7B, encoder-only
+UniXcoder, Qwen2.5-Coder-0.5B with QLoRA, and Seq2Seq CodeT5+ 220M. The
+evaluation uses BLEU, CodeBLEU, syntax checking or compilation, Execution
+Accuracy, and Computational Accuracy. The strongest final system is zero-shot
+Qwen2.5-Coder-7B, with 59.68 Computational Accuracy for Java-to-Python and
+61.80 for Python-to-Java. Among the trained models, Seq2Seq CodeT5+ 220M gives
+the best functional results.
 \end{abstract}
 
 \end{abstractpage}

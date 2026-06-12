@@ -1,2 +1,34 @@
 % !TeX root = main.tex
 \chapter{Introduction}
+
+\quad Machine translation evolved a lot in the last years, 
+but my question was if the subtask of code translation
+evolved at the same level. Translating programs from one
+language to another can support code migration, reuse, and maintenance, but the
+task is harder than ordinary text translation. A correct program translation
+must preserve executable behavior: the generated code has to compile, run, and
+produce the same outputs as the source program.
+
+This thesis studies Java-Python translation on the AVATAR dataset, which
+contains aligned competitive-programming solutions and execution test cases. The
+task is evaluated in both directions, Java-to-Python and Python-to-Java. The
+main challenge is that lexical similarity is not enough: a translation can
+obtain reasonable BLEU or CodeBLEU scores while still failing to preserve the
+required algorithmic behavior. For this reason, the evaluation also includes
+compilation or syntax checking, Execution Accuracy, and Computational Accuracy.
+
+This work compares one modern model for each required category: zero-shot Qwen
+7B, encoder-only UniXcoder with a learned Transformer decoder, decoder-only Qwen
+0.5B with QLoRA, and Seq2Seq CodeT5+ 220M. The strongest final system is the
+zero-shot Qwen model, reaching 59.68
+Computational Accuracy for Java-to-Python and 61.80 for Python-to-Java. Among
+the trained systems, the Seq2Seq CodeT5+ model gives the best functional
+result, reaching 47.82 Computational Accuracy for Java-to-Python and 41.29 for
+Python-to-Java after two epochs of fine-tuning per direction.
+
+Compared with the original AVATAR baselines, this work focuses on modern
+pretrained code models. The comparison shows the practical effect of code pretraining,
+instruction tuning, and parameter-efficient fine-tuning under the same benchmark
+and metric protocol. It also shows why execution-based evaluation is necessary:
+modern models can generate code that is textually close to the reference while
+still failing to preserve the program behavior.

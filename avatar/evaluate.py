@@ -1,6 +1,5 @@
-from constants import BASE_TRAIN_CONFIG, OUTPUT_ROOT, SEQ2SEQ_MODEL, TRANSFORMER_MODEL
+from constants import BASE_TRAIN_CONFIG, OUTPUT_ROOT, TRANSFORMER_MODEL
 from metrics import evaluate, load_reference_sets, read_lines
-from seq2seq import Seq2Seq, Seq2SeqConfig
 from transformer import Transformer, TransformerConfig
 
 import json
@@ -12,7 +11,6 @@ import tensorflow as tf
 
 
 MODEL_WEIGHTS = ""
-MODEL_TYPE = "transformer"
 
 SPECIAL_TOKENS = ["<pad>", "<s>", "</s>", "<unk>"]
 
@@ -32,7 +30,7 @@ def to_jsonable(value):
 
 def build_args():
     config = dict(BASE_TRAIN_CONFIG)
-    config.update(TRANSFORMER_MODEL if MODEL_TYPE == "transformer" else SEQ2SEQ_MODEL)
+    config.update(TRANSFORMER_MODEL)
     config["output_dir"] = str(OUTPUT_ROOT / f"{config['model']}_{config['source']}2{config['target']}")
     return SimpleNamespace(**config)
 
@@ -78,36 +76,21 @@ def build_source_dataset(src_texts, token_to_id, max_source_length, batch_size):
 
 
 def create_model(args, vocab_size, token_to_id):
-    if args.model == "transformer":
-        return Transformer(
-            TransformerConfig(
-                vocab_size=vocab_size,
-                pad_id=token_to_id["<pad>"],
-                bos_id=token_to_id["<s>"],
-                eos_id=token_to_id["</s>"],
-                model_dim=args.model_dim,
-                ffn_dim=args.ffn_dim,
-                num_heads=args.num_heads,
-                num_layers=args.num_layers,
-                dropout=args.dropout,
-                attention_dropout=args.attention_dropout,
-                activation_dropout=args.activation_dropout,
-                max_source_length=args.max_source_length,
-                max_target_length=args.max_target_length,
-            )
-        )
-    return Seq2Seq(
-        Seq2SeqConfig(
+    return Transformer(
+        TransformerConfig(
             vocab_size=vocab_size,
             pad_id=token_to_id["<pad>"],
             bos_id=token_to_id["<s>"],
             eos_id=token_to_id["</s>"],
-            embed_size=args.embed_size,
-            encoder_hidden_size=args.encoder_hidden_size,
-            decoder_hidden_size=args.decoder_hidden_size,
-            encoder_layers=args.encoder_layers,
-            decoder_layers=args.decoder_layers,
+            model_dim=args.model_dim,
+            ffn_dim=args.ffn_dim,
+            num_heads=args.num_heads,
+            num_layers=args.num_layers,
             dropout=args.dropout,
+            attention_dropout=args.attention_dropout,
+            activation_dropout=args.activation_dropout,
+            max_source_length=args.max_source_length,
+            max_target_length=args.max_target_length,
         )
     )
 

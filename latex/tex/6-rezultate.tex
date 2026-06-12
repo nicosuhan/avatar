@@ -1,47 +1,139 @@
 % !TeX root = main.tex
 \chapter{Results and Discussion}
 
-\section{Results by Model Category}
+\section{Reference Results from the AVATAR Paper}
 
-\subsection{Zero-Shot Results}
-
-\quad This subsection reports the completed experimental results. At this stage,
-the measured results are for the zero-shot Qwen2.5-Coder-7B-Instruct solution.
-The model was evaluated on the full AVATAR test split in both translation
-directions. Each direction contains 1746 predictions, and the same prediction
-files were used for all lexical, structural, and execution-based metrics.
+\quad The original AVATAR paper evaluates several neural models on Java-Python
+program translation \cite{ahmad2023avatar}. Table
+\ref{tab:avatar-paper-reference} reproduces the most useful columns from the
+paper's program-translation results: BLEU for token-level similarity, CodeBLEU
+for code-aware similarity, and Computational Accuracy for functional
+correctness. The full paper table also reports Syntax Match, Dataflow Match,
+and Execution Accuracy.
 
 \begin{table}[htbp]
 \centering
-\caption{Zero-shot Qwen2.5-Coder-7B-Instruct results on the AVATAR test split.}
-\label{tab:qwen-main-results}
+\caption{Reference results reported in the original AVATAR paper.}
+\label{tab:avatar-paper-reference}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{lrrrrrr}
 \hline
-Direction & BLEU & SM & DM & CB & EA & CA \\
+Model & \multicolumn{3}{c}{Java-to-Python} & \multicolumn{3}{c}{Python-to-Java} \\
+\cline{2-4}\cline{5-7}
+ & BLEU & CB & CA & BLEU & CB & CA \\
 \hline
-Java-to-Python & 58.23 & 43.15 & 41.14 & 45.67 & 70.90 & 59.68 \\
-Python-to-Java & 61.02 & 56.22 & 31.87 & 48.51 & 76.80 & 61.80 \\
+TransCoder & 38.7 & 36.4 & 0.0 & 45.2 & 32.4 & 0.0 \\
+DOBF & 42.0 & 38.9 & 0.0 & 42.3 & 31.2 & 0.0 \\
+TransCoder-ST (zero-shot) & 41.7 & 39.3 & 0.0 & 42.5 & 30.7 & 0.0 \\
+Seq2Seq + Attention & 57.4 & 42.6 & 2.8 & 59.5 & 43.0 & 0.8 \\
+Transformer & 39.6 & 34.8 & 0.4 & 43.5 & 35.6 & 0.4 \\
+CodeGPT & 46.3 & 30.2 & 2.8 & 48.9 & 38.0 & 2.0 \\
+CodeGPT-adapted & 44.3 & 29.3 & 2.4 & 48.0 & 36.7 & 0.8 \\
+CodeBERT & 51.1 & 35.0 & 0.4 & 35.1 & 33.2 & 0.0 \\
+GraphCodeBERT & 57.9 & 39.0 & 2.0 & 38.3 & 36.9 & 0.0 \\
+PLBART & 63.1 & 46.2 & 6.8 & 69.7 & 48.8 & 0.8 \\
+CodeT5 & 62.7 & 46.2 & 6.0 & 60.8 & 50.3 & 1.6 \\
+TransCoder-ST (fine-tuned) & 55.4 & 43.8 & 5.6 & 66.0 & 48.6 & 2.0 \\
 \hline
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
-The zero-shot model obtains strong lexical and execution-based results in both
-directions. Java-to-Python reaches a BLEU score of 58.23 and a CodeBLEU score
-of 45.67. Its Computational Accuracy is 59.68, showing that a large part of the
-translations preserved the expected behavior on the available tests.
+The reference results show why execution-based evaluation is necessary for this
+task. Several models obtain BLEU scores above 55 and CodeBLEU scores above 40,
+but their Computational Accuracy remains low. The best Java-to-Python value in
+the paper's program-translation table is 6.8, obtained by PLBART, while the
+best Python-to-Java value is 2.0, obtained by CodeGPT and the fine-tuned
+TransCoder-ST system.
 
-Python-to-Java obtains a higher BLEU score, 61.02, and a higher CodeBLEU score,
-48.51. Its Execution Accuracy is also higher, with 76.80 compared with 70.90
-for Java-to-Python. The CodeBLEU components show a difference between the two
-directions: Python-to-Java has stronger Syntax Match, while Java-to-Python has
-stronger Dataflow Match.
+\section{Results of the Implemented Models}
 
-Overall, the zero-shot Qwen solution is much stronger than a naive token-level
-translation baseline would be, especially because it was not trained on AVATAR.
-At the same time, the gap between Execution Accuracy and Computational Accuracy
-shows that runnable code is not enough. A translation can compile and execute
-while still producing the wrong output. This confirms the importance of
-including execution-based metrics in addition to BLEU and CodeBLEU for code
-translation.
+\quad Table \ref{tab:implemented-model-results} summarizes the four implemented
+model categories. The same compact metric set is used as in Table
+\ref{tab:avatar-paper-reference}, so the thesis results can be compared
+directly with the reference systems from the AVATAR paper.
 
-\section{Comparison and Discussion}
+\begin{table}[htbp]
+\centering
+\caption{Results of the implemented models on the AVATAR test split.}
+\label{tab:implemented-model-results}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrr}
+\hline
+Model & \multicolumn{3}{c}{Java-to-Python} & \multicolumn{3}{c}{Python-to-Java} \\
+\cline{2-4}\cline{5-7}
+ & BLEU & CB & CA & BLEU & CB & CA \\
+\hline
+Zero-shot Qwen2.5-Coder 7B & 58.23 & 45.67 & 59.68 & 61.02 & 48.51 & 61.80 \\
+Encoder-only UniXcoder & 55.20 & 44.20 & 8.00 & 49.44 & 38.18 & 1.95 \\
+Decoder-only Qwen2.5-Coder 0.5B & 55.58 & 36.49 & 24.68 & 46.59 & 37.69 & 11.34 \\
+Seq2Seq CodeT5+ 220M & 73.11 & 47.37 & 47.82 & 72.07 & 51.76 & 41.29 \\
+\hline
+\end{tabular}%
+}
+\end{table}
+
+The strongest implemented model by Computational Accuracy is the 7B zero-shot
+Qwen system. It reaches 59.68 for Java-to-Python and 61.80 for Python-to-Java
+without AVATAR-specific training. Compared with the AVATAR paper reference
+results, it is far above every program-translation model in Table
+\ref{tab:avatar-paper-reference} on functional correctness. Its BLEU and
+CodeBLEU are not the highest implemented values, which shows that surface
+similarity is not the only signal that matters for executable translation.
+
+Seq2Seq CodeT5+ 220M is the strongest implemented fine-tuned model. It obtains
+the highest BLEU scores among the implemented systems, 73.11 and 72.07, and the
+highest implemented CodeBLEU score for Python-to-Java, 51.76. Its
+Computational Accuracy is also strong, with 47.82 for Java-to-Python and 41.29
+for Python-to-Java. This places it well above the CodeT5 and PLBART reference
+results from the AVATAR paper on functional correctness, although still below
+the zero-shot Qwen system used in this thesis.
+
+The decoder-only Qwen2.5-Coder 0.5B model sits between the strong fine-tuned
+encoder-decoder model and the weaker encoder-only experiment. Its
+Computational Accuracy values, 24.68 and 11.34, are above the reference range
+reported in the AVATAR paper's program-translation table, but they do not reach
+the CodeT5+ results. This suggests that the causal model can learn useful
+translation behavior after fine-tuning, but the smaller checkpoint and the
+single-stream prompt format limit functional correctness.
+
+The encoder-only UniXcoder model has reasonable lexical and CodeBLEU scores,
+but weak functional results. In Java-to-Python, it reaches 55.20 BLEU and 44.20
+CodeBLEU, close to several reference models from the AVATAR paper, yet its
+Computational Accuracy is only 8.00. In Python-to-Java, the gap is larger:
+49.44 BLEU and 38.18 CodeBLEU correspond to only 1.95 Computational Accuracy.
+This is near the top of the original paper's Python-to-Java functional range,
+but it remains weak in absolute terms. The result confirms that a pretrained
+source encoder is not enough by itself; the target-side generator is critical
+for producing behaviorally correct programs.
+
+\section{Discussion}
+
+\quad The main pattern across both tables is the separation between textual
+similarity and functional correctness. BLEU and CodeBLEU reward programs that
+look close to the reference, but AVATAR requires preserving runtime behavior.
+This distinction explains why models such as PLBART, CodeT5, and
+GraphCodeBERT can have respectable BLEU and CodeBLEU values while still
+producing low Computational Accuracy in the original paper.
+
+The implemented results follow the same pattern. CodeT5+ is the best model for
+surface similarity, but zero-shot Qwen2.5-Coder 7B is the best model for
+functional correctness. This difference is important: the larger instruction
+model does not reproduce the reference format as closely as the fine-tuned
+Seq2Seq model, but it more often preserves the behavior of the source program.
+For a program translation system, this is the more important property.
+
+The comparison with the AVATAR paper also shows that model scale and pretraining
+objective matter. The zero-shot Qwen model exceeds the reference systems on
+functional correctness even without supervised training on the benchmark, while
+the smaller decoder-only model improves over the original functional range but
+does not reach the same level. The encoder-only model gives the clearest
+negative result: reusing only a pretrained encoder helps produce plausible text,
+but it does not solve the harder problem of generating correct target-language
+programs.
+
+Overall, the best result of this thesis is not the model with the highest BLEU,
+but the model with the highest Computational Accuracy. The results therefore
+support the central evaluation choice of the project: code translation should
+be judged by behavioral correctness, with lexical and structural metrics used
+as supporting evidence rather than as the final criterion.
